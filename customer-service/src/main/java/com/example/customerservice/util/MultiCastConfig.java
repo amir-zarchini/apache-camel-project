@@ -51,6 +51,7 @@ public class MultiCastConfig extends RouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, ResponseMulticast.class)
                 .log("response  -->  ${body}");
 
+        // send response from soap service to kafka
         from("direct:send-to-broker")
                 .log(LoggingLevel.ERROR, " log camel ---> ${body}")
                 .marshal().json(JsonLibrary.Jackson, ResponseMulticast.class)
