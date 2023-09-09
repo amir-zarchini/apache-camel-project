@@ -12,6 +12,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Response implements Serializable {
-    private Long id;
+    private int id;
     private String responseStatus;
 }

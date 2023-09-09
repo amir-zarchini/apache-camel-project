@@ -1,4 +1,8 @@
-check balance service: {"id":1,"account":"not-exist!","name":"test-multicast"}
-customer service: {"id":1,"responseStatus":"Sample Account_not-exist!"}
-check balance service: {"id":1,"account":"not-exist!","name":"test-multicast"}
-customer service: {"id":1,"responseStatus":"Sample Account_not-exist!"}
+check balance service request from costumer: {"id":1,"account":"not-exist!","name":"test-multicast"}
+check balance service response to costumer: {"id":1,"responseStatus":"not approved!"}
+soap request from customerService to checkAccountService: {"id":1,"name":"test-multicast","account":"not-exist!"}
+soap response to customerService from checkAccountService: {"id":1,"name":"Sample ItemName_test-multicast","category":"Account not approved! in soap!!"}
+check balance service request from costumer: {"id":1,"account":"not-exist!","name":"test-multicast"}
+check balance service response to costumer: {"id":1,"responseStatus":"not approved!"}
+soap request from customerService to checkAccountService: {"id":1,"name":"test-multicast","account":"not-exist!"}
+soap response to customerService from checkAccountService: {"id":1,"name":"Sample ItemName_test-multicast","category":"Account not approved! in soap!!"}

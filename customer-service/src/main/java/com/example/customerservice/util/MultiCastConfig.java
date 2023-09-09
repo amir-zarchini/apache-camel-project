@@ -27,18 +27,6 @@ public class MultiCastConfig extends RouteBuilder {
                     .to("direct:send-rest")
                     .to("direct:send-soap");
 
-        // call soap service
-        from("direct:send-soap")
-                .process(this::processRequestSoap)
-                .setHeader(CxfConstants.OPERATION_NAME,
-                        constant("Item"))
-                .setHeader(CxfConstants.OPERATION_NAMESPACE,
-                        constant("http://example-project.com/"))
-                .to(getCxfUri() + "&defaultOperationName=sendErrorReport")
-                .process(this::processResponseSoap)
-                .log("soap request ---> ${body}")
-                .to("direct:send-to-broker");
-
         // call rest service
         from("direct:send-rest")
                 .marshal().json(JsonLibrary.Jackson, RequestMulticast.class)
@@ -51,17 +39,31 @@ public class MultiCastConfig extends RouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, ResponseMulticast.class)
                 .log("response  -->  ${body}");
 
-        // send response from soap service to kafka
-        from("direct:send-to-broker")
-                .log(LoggingLevel.ERROR, " log camel ---> ${body}")
-                .marshal().json(JsonLibrary.Jackson, ResponseMulticast.class)
-                .log(LoggingLevel.ERROR, " log after marshal ---> ${body}")
-                .to("kafka:topic-customer-service")
-                .unmarshal().json(JsonLibrary.Jackson, ResponseMulticast.class)
-                .log(LoggingLevel.ERROR, " log after unmarshal ---> ${body}");
+        // call soap service
+        from("direct:send-soap")
+                .process(this::processRequestSoap)
+                .setHeader(CxfConstants.OPERATION_NAME,
+                        constant("Item"))
+                .setHeader(CxfConstants.OPERATION_NAMESPACE,
+                        constant("http://example-project.com/"))
+                .to(getCxfUri() + "&defaultOperationName=sendErrorReport")
+                .process(this::processResponseSoap)
+                .log("soap request ---> ${body}");
+    }
+
+    public void processRequestSoap(Exchange exchange) throws Exception {
+        RequestMulticast requestMulticast = exchange.getIn().getBody(RequestMulticast.class);
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setId(requestMulticast.getId());
+        itemRequest.setName(requestMulticast.getName());
+        itemRequest.setAccount(requestMulticast.getAccount());
+        exchange.getIn().setBody(itemRequest);
+        System.out.println("requestMulticast --> " + requestMulticast
+                +"| itemRequest --> "+ itemRequest.toString());
     }
 
     static String getCxfUri() {
+        System.out.println("url is here!");
         return "cxf://http://localhost:8095/ws"
                 + "?wsdlURL=classpath:item.wsdl"
                 + "&serviceClass=" + Item.class.getName()
@@ -75,14 +77,5 @@ public class MultiCastConfig extends RouteBuilder {
         responseMulticast.setId(result.getId());
         responseMulticast.setResponseStatus(result.getCategory());
         exchange.getIn().setBody(responseMulticast);
-    }
-
-    public void processRequestSoap(Exchange exchange) throws Exception {
-        RequestMulticast requestMulticast = exchange.getIn().getBody(RequestMulticast.class);
-        ItemRequest itemRequest = new ItemRequest();
-        itemRequest.setId(requestMulticast.getId());
-        itemRequest.setName(requestMulticast.getName());
-        itemRequest.setAccount(requestMulticast.getAccount());
-        exchange.getIn().setBody(itemRequest);
     }
 }
