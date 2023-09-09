@@ -21,52 +21,35 @@ public class MultiCastConfig extends RouteBuilder {
     @Override
     public void configure() {
 
-//        SoapJaxbDataFormat soapDF = new SoapJaxbDataFormat("com.example.camelmulticastservice.model",
-//                new ServiceInterfaceStrategy(ResponseMulticast.class, true));
-
-        // convert pojo to json and multicast to
-        // direct for call rest and direct for convert json to xml
+        //multicast request to soap and rest service
         from("direct:multi-cast")
-                .to("direct:send-soap");
-//                .marshal().json(JsonLibrary.Jackson, RequestMulticast.class)
-//                .log("log: json-format --> ${body}")
-//                .multicast()
-//                    .to("direct:json-to-xml")
-//                    .to("direct:send-rest");
-
-        // convert json to xml and send to direct for call soap service
-//        from("direct:json-to-xml")
-//                .unmarshal().json(JsonLibrary.Jackson, Map.class).marshal().xstream()
-////                .to("direct:send-soap")
-//                .log("log: xml-format --> ${body}");
+                .multicast()
+                    .to("direct:send-rest")
+                    .to("direct:send-soap");
 
         // call soap service
         from("direct:send-soap")
                 .process(this::processRequestSoap)
-//                .convertBodyTo(ItemRequest.class)
-//                .setBody(constant("{$body}"))
                 .setHeader(CxfConstants.OPERATION_NAME,
                         constant("Item"))
                 .setHeader(CxfConstants.OPERATION_NAMESPACE,
                         constant("http://example-project.com/"))
                 .to(getCxfUri() + "&defaultOperationName=sendErrorReport")
                 .process(this::processResponseSoap)
-//                .unmarshal().json(JsonLibrary.Jackson, ResponseMulticast.class)
-//                .log("The title is: ${body}")
                 .log("soap request ---> ${body}")
                 .to("direct:send-to-broker");
-//                .process(exchange -> exchange.getIn().setBody(exchange.getIn().getBody()));
 
         // call rest service
-//        from("direct:send-rest")
-//                .setHeader(Exchange.HTTP_METHOD, constant("POST"))
-//                .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
-//                .setHeader("Accept",constant("application/json"))
-//                .log("send request -->  ${body}")
-//                .toD("http:localhost:8090/api/" +
-//                        "receive-from-multiCastService?bridgeEndpoint=true&throwExceptionOnFailure=false")
-//                .unmarshal().json(JsonLibrary.Jackson, ResponseMulticast.class)
-//                .log("response  -->  ${body}");
+        from("direct:send-rest")
+                .marshal().json(JsonLibrary.Jackson, RequestMulticast.class)
+                .setHeader(Exchange.HTTP_METHOD, constant("POST"))
+                .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+                .setHeader("Accept",constant("application/json"))
+                .log("send request -->  ${body}")
+                .toD("http:localhost:8090/api/" +
+                        "receive-from-multiCastService?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .unmarshal().json(JsonLibrary.Jackson, ResponseMulticast.class)
+                .log("response  -->  ${body}");
 
         from("direct:send-to-broker")
                 .log(LoggingLevel.ERROR, " log camel ---> ${body}")
@@ -91,8 +74,6 @@ public class MultiCastConfig extends RouteBuilder {
         responseMulticast.setId(result.getId());
         responseMulticast.setResponseStatus(result.getCategory());
         exchange.getIn().setBody(responseMulticast);
-        System.out.println(responseMulticast.toString());
-
     }
 
     public void processRequestSoap(Exchange exchange) throws Exception {
@@ -101,17 +82,6 @@ public class MultiCastConfig extends RouteBuilder {
         itemRequest.setId(requestMulticast.getId());
         itemRequest.setName(requestMulticast.getName());
         itemRequest.setAccount(requestMulticast.getAccount());
-//        ItemRequest itemRequest = exchange.getContext().getTypeConverter()
-//                .tryConvertTo(ItemRequest.class, exchange, requestMulticast);
-        System.out.println("body: " + requestMulticast.toString());
-//        System.out.println("body2: " + itemRequest.toString());
-        System.out.println("body3: " + itemRequest.toString());
         exchange.getIn().setBody(itemRequest);
-        String body = exchange.getIn().getBody(String.class);
-        System.out.println(body);
-        // change the message to say Hello
-//        exchange.getOut().setBody("Hello " + body);
-        // copy headers from IN to OUT to propagate them
-//        exchange.getOut().setHeaders(exchange.getIn().getHeaders());
     }
 }

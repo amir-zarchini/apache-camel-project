@@ -21,8 +21,3 @@ public class RestApiConsumerRouter  extends RouteBuilder {
                     .to("log:my-logging-queue");
         }
 }
-
-//    from("spring-rabbitmq:test?routingKey=def-rout")
-//                .log(LoggingLevel.ERROR, "Received a message ---> ${body}")
-//                        .to("log:response")
-//                        .to("log:input");

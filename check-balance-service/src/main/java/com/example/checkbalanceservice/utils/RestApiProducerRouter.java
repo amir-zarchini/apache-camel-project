@@ -17,21 +17,3 @@ public class RestApiProducerRouter extends RouteBuilder {
                 .to("kafka:topic-check-balance-service");
     }
 }
-
-
-
-//        JacksonDataFormat jsonDataFormat = new JacksonDataFormat(Request.class);
-//
-//        from("direct:rabbit-mq").id("rabbitMQRoute").marshal(jsonDataFormat)
-//                .to("rabbitmq://localhost:15672/TEST-QUEUE.exchange?queue=queue&autoDelete=false")
-//                .end();
-
-//    from("direct:rabbit-mq")
-////                .process(this::getRequestDto)
-//                .log(LoggingLevel.ERROR, " log camel ---> ${body}")
-//                .marshal().json(JsonLibrary.Jackson, Request.class)
-//                .to("log:request")
-//        .to(ExchangePattern.InOut, "spring-rabbitmq:default?routingKey=def-rout")
-//                .to("log:response");
-//
-//}

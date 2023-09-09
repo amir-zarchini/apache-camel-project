@@ -23,6 +23,7 @@ public class RequestService {
 
     public Response getRequestProcess(Object request) {
         System.out.println("multicast process send service: " + request);
+        producer.sendBody("direct:send-to-broker",request);
         return new Response(1L,"200");
     }
 }
